@@ -2,6 +2,8 @@
 
 import base64
 import os
+import warnings
+from binaryornot.check import is_binary
 
 
 class ImageExtractor(object):
@@ -26,24 +28,29 @@ class ImageExtractor(object):
             self._iteration_number = 0
             label = open(self.file_path)
             label_filename = os.path.basename(self.file_path)
-            for label_line in label:
-                stripped_label_line = label_line.strip()
-                if stripped_label_line.startswith('<Image>') and stripped_label_line.endswith('</Image>'):
-                    self._iteration_number += 1
-                    trimmed_line = stripped_label_line[len('<Image>'):-len('</Image>')]
-                    trimmed_line += '=' * (-len(trimmed_line) % 4)
-                    if not self.write_stdout:
-                        output_filename = os.path.join(self.output_path,
-                                                       label_filename.rstrip('.label') + ' image ' +
-                                                       str(self._iteration_number) + '.png')
+            if not is_binary(self.file_path):
+                if not label_filename.endswith(".label"):
+                    warnings.warn(self.file_path + " May not be a dymo .label file, this may not do what you intend.")
+                for label_line in label:
+                    stripped_label_line = label_line.strip()
+                    if stripped_label_line.startswith('<Image>') and stripped_label_line.endswith('</Image>'):
+                        self._iteration_number += 1
+                        trimmed_line = stripped_label_line[len('<Image>'):-len('</Image>')]
+                        trimmed_line += '=' * (-len(trimmed_line) % 4)
+                        if not self.write_stdout:
+                            output_filename = os.path.join(self.output_path,
+                                                           label_filename.rstrip('.label') + ' image ' +
+                                                           str(self._iteration_number) + '.png')
 
-                        image = open(output_filename, 'wb')
-                        image.write(base64.b64decode(trimmed_line))
-                        image.close()
-                        print(output_filename)
-                    else:
-                        os.write(1, (base64.b64decode(trimmed_line)))
-            label.close()
+                            image = open(output_filename, 'wb')
+                            image.write(base64.b64decode(trimmed_line))
+                            image.close()
+                            print(output_filename)
+                        else:
+                            os.write(1, (base64.b64decode(trimmed_line)))
+                label.close()
+            else:
+                warnings.warn(self.file_path + " is a binary file, skipping")
 
         def do_loop():
             if not self.check_for_ready():
