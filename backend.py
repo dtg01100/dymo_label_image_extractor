@@ -13,25 +13,28 @@ class ImageExtractor(object):
         self._file_path = ''
         self._iteration_number = 0
 
+    def write_image_from_label(self, label_path):
+        self._iteration_number = 0
+        label = open(label_path)
+        label_filename = os.path.basename(label_path)
+        for label_line in label:
+            stripped_label_line = label_line.strip()
+            if stripped_label_line.startswith('<Image>') and stripped_label_line.endswith('</Image>'):
+                self._iteration_number += 1
+                trimmed_line = stripped_label_line[len('<Image>'):-len('</Image>')]
+                trimmed_line += '=' * (-len(trimmed_line) % 4)
+                output_filename = os.path.join(self.output_path,
+                                               label_filename.rstrip('.label') + ' image ' +
+                                               str(self._iteration_number) + '.png')
+                image = open(output_filename, 'wb')
+                image.write(base64.b64decode(trimmed_line))
+                image.close()
+        label.close()
+
     def start_extracting(self):
 
         self.total_file_number = 0
         self.working_file_number = 0
-
-        def write_image_from_label(label, entry):
-            self._iteration_number = 0
-            for label_line in label:
-                stripped_label_line = label_line.strip()
-                if stripped_label_line.startswith('<Image>') and stripped_label_line.endswith('</Image>'):
-                    self._iteration_number += 1
-                    trimmed_line = stripped_label_line[len('<Image>'):-len('</Image>')]
-                    trimmed_line += '=' * (-len(trimmed_line) % 4)
-                    output_filename = os.path.join(self.output_path,
-                                                   entry.rstrip('.label') + ' image ' +
-                                                   str(self._iteration_number) + '.png')
-                    image = open(output_filename, 'wb')
-                    image.write(base64.b64decode(trimmed_line))
-                    image.close()
 
         def do_loop():
             if not self.check_for_ready():
@@ -47,9 +50,7 @@ class ImageExtractor(object):
                     self._file_path = os.path.join(root, entry)
                     self.working_file_number += 1
                     if self._file_path.endswith('.label'):
-                        label_file_handle = open(self._file_path)
-                        write_image_from_label(label_file_handle, entry)
-                        label_file_handle.close()
+                        self.write_image_from_label(self._file_path)
         self.is_extracting = True
         do_loop()
         self.working_file_number = 0
