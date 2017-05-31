@@ -76,16 +76,19 @@ class ImageExtractor(object):
             else:
                 return False
         else:
-            if self.write_stdout:
-                if os.path.isfile(self.input_path):
-                    return True
+            try:
+                if self.write_stdout:
+                    if os.path.isfile(self.input_path):
+                        return True
+                    else:
+                        return False
                 else:
-                    return False
-            else:
-                if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
-                    return True
-                else:
-                    return False
+                    if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
+                        return True
+                    else:
+                        return False
+            except TypeError:
+                return False
 
     def get_count_files_in_folder(self):
         files = next(os.walk(self.input_path))[2]
