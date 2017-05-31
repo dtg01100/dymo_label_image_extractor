@@ -2,7 +2,6 @@
 
 import base64
 import os
-import sys
 
 
 class ImageExtractor(object):
@@ -33,16 +32,16 @@ class ImageExtractor(object):
                     self._iteration_number += 1
                     trimmed_line = stripped_label_line[len('<Image>'):-len('</Image>')]
                     trimmed_line += '=' * (-len(trimmed_line) % 4)
-                    output_filename = os.path.join(self.output_path,
-                                                   label_filename.rstrip('.label') + ' image ' +
-                                                   str(self._iteration_number) + '.png')
                     if not self.write_stdout:
+                        output_filename = os.path.join(self.output_path,
+                                                       label_filename.rstrip('.label') + ' image ' +
+                                                       str(self._iteration_number) + '.png')
+
                         image = open(output_filename, 'wb')
                         image.write(base64.b64decode(trimmed_line))
                         image.close()
                     else:
-                        image = sys.stdout
-                        image.write(str(base64.b64decode(trimmed_line)))
+                        os.write(1,(base64.b64decode(trimmed_line)))
             label.close()
 
         def do_loop():
@@ -77,7 +76,7 @@ class ImageExtractor(object):
             else:
                 return False
         else:
-            if not self.write_stdout:
+            if self.write_stdout:
                 if os.path.isfile(self.input_path):
                     return True
                 else:

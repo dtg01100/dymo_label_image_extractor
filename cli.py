@@ -12,6 +12,10 @@ arguments = parser.parse_args()
 extractor = backend.ImageExtractor()
 extractor.is_batch = False
 
+print(arguments.input_file)
+print(arguments.output_directory)
+print(arguments.stdout)
+
 extractor.input_path = arguments.input_file
 extractor.output_path = arguments.output_directory
 extractor.write_stdout = arguments.stdout
