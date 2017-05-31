@@ -40,6 +40,7 @@ class ImageExtractor(object):
                         image = open(output_filename, 'wb')
                         image.write(base64.b64decode(trimmed_line))
                         image.close()
+                        print(output_filename)
                     else:
                         os.write(1, (base64.b64decode(trimmed_line)))
             label.close()
@@ -71,24 +72,27 @@ class ImageExtractor(object):
 
     def check_for_ready(self):
         if self.is_batch:
-            if os.path.isdir(self.input_path) and os.path.isdir(self.output_path):
-                return True
-            else:
-                return False
-        else:
-            try:
-                if self.write_stdout:
-                    if os.path.isfile(self.input_path):
-                        return True
-                    else:
-                        return False
+            if self.write_stdout:
+                if os.path.isdir(self.input_path):
+                    return True
                 else:
-                    if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
-                        return True
-                    else:
-                        return False
-            except TypeError:
-                return False
+                    return False
+            else:
+                if os.path.isdir(self.input_path) and os.path.isdir(self.output_path):
+                    return True
+                else:
+                    return False
+        else:
+            if self.write_stdout:
+                if os.path.isfile(self.input_path):
+                    return True
+                else:
+                    return False
+            else:
+                if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
+                    return True
+                else:
+                    return False
 
     def get_count_files_in_folder(self):
         files = next(os.walk(self.input_path))[2]

@@ -2,22 +2,24 @@
 
 import argparse
 import backend
-import sys
+import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-i", "--input_file", help="Input .label file path")
+parser.add_argument("input_path", help="Input .label file path", nargs='+')
 parser.add_argument("-o", "--output_directory", help="Output directory path")
 arguments = parser.parse_args()
 
 extractor = backend.ImageExtractor()
-extractor.is_batch = False
 
-extractor.input_path = arguments.input_file
-try:
-    extractor.output_path = arguments.output_directory
-except TypeError:
+extractor.output_path = arguments.output_directory
+
+if extractor.output_path is None:
     extractor.write_stdout = True
-if extractor.check_for_ready():
-    extractor.start_extracting()
-else:
-    sys.stderr.write("Incorrect command line arguments")
+for entry in arguments.input_path:
+    extractor.input_path = entry
+    if os.path.isdir(entry):
+        extractor.is_batch = True
+    else:
+        extractor.is_batch = False
+    if extractor.check_for_ready():
+        extractor.start_extracting()
