@@ -2,6 +2,7 @@
 
 import base64
 import os
+import sys
 
 
 class ImageExtractor(object):
@@ -15,6 +16,7 @@ class ImageExtractor(object):
         self.file_path = ''
         self.is_batch = False
         self._iteration_number = 0
+        self.write_stdout = False
 
     def start_extracting(self):
 
@@ -34,9 +36,13 @@ class ImageExtractor(object):
                     output_filename = os.path.join(self.output_path,
                                                    label_filename.rstrip('.label') + ' image ' +
                                                    str(self._iteration_number) + '.png')
-                    image = open(output_filename, 'wb')
-                    image.write(base64.b64decode(trimmed_line))
-                    image.close()
+                    if not self.write_stdout:
+                        image = open(output_filename, 'wb')
+                        image.write(base64.b64decode(trimmed_line))
+                        image.close()
+                    else:
+                        image = sys.stdout
+                        image.write(str(base64.b64decode(trimmed_line)))
             label.close()
 
         def do_loop():
@@ -71,11 +77,17 @@ class ImageExtractor(object):
             else:
                 return False
         else:
-            if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
-                return True
+            if not self.write_stdout:
+                if os.path.isfile(self.input_path):
+                    return True
+                else:
+                    return False
             else:
-                return False
+                if os.path.isfile(self.input_path) and os.path.isdir(self.output_path):
+                    return True
+                else:
+                    return False
 
     def get_count_files_in_folder(self):
-        files = next(os.walk(self.input_path))[2]  # dir is your directory path as string
+        files = next(os.walk(self.input_path))[2]
         return len(files)
