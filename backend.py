@@ -41,7 +41,7 @@ class ImageExtractor(object):
                         image.write(base64.b64decode(trimmed_line))
                         image.close()
                     else:
-                        os.write(1,(base64.b64decode(trimmed_line)))
+                        os.write(1, (base64.b64decode(trimmed_line)))
             label.close()
 
         def do_loop():
