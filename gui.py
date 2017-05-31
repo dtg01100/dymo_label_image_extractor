@@ -8,6 +8,7 @@ import time
 import threading
 
 extractor_object = backend.ImageExtractor()
+extractor_object.is_batch = True
 
 
 def set_widgets():
